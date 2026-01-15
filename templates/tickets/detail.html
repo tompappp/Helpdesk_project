@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% block title %}Zgłoszenie #{{ ticket.id }}{% endblock %}
+
+{% block content %}
+
+<div style="border:1px solid #444; padding:20px; border-radius:8px; margin-bottom:20px;">
+    <h2>Zgłoszenie #{{ ticket.id }} – {{ ticket.title }}</h2>
+
+    <p><b>Autor:</b> {{ ticket.author.username }}</p>
+    <p>Status: <b>{{ ticket.get_status_display }}</b></p>
+    <p>Priorytet: <b>{{ ticket.get_priority_display }}</b></p>
+    <p><b>Kategoria:</b> {{ ticket.category }}</p>
+
+    <hr>
+
+    <p><b>Opis:</b></p>
+    <p>{{ ticket.description }}</p>
+</div>
+
+{% if request.user.role == 'ADMIN' or request.user.role == 'TECH' %}
+<div style="margin-bottom:30px;">
+    <h3>Zmień status zgłoszenia</h3>
+
+    <a class="button" href="{% url 'change_status' ticket.id 'OPEN' %}">OTWARTE</a>
+    <a class="button" href="{% url 'change_status' ticket.id 'IN_PROGRESS' %}">W TRAKCIE</a>
+    <a class="button" href="{% url 'change_status' ticket.id 'CLOSED' %}">ZAMKNIĘTE</a>
+</div>
+{% endif %}
+
+<hr>
+
+<h3>Komentarze</h3>
+
+<div style="margin-bottom:20px;">
+{% for c in comments %}
+    <div style="border-left:4px solid #666; padding-left:10px; margin-bottom:10px;">
+        <p><b>{{ c.author.username }}</b></p>
+        <p>{{ c.content }}</p>
+    </div>
+{% empty %}
+    <p>Brak komentarzy.</p>
+{% endfor %}
+</div>
+
+<hr>
+
+<h3>Dodaj komentarz</h3>
+
+<form method="post" style="max-width:500px;">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button class="button">Dodaj komentarz</button>
+</form>
+
+{% endblock %}

@@ -1,0 +1,128 @@
+{% extends "base.html" %}
+{% block title %}Panel użytkownika{% endblock %}
+
+{% block content %}
+
+<style>
+.status-OPEN { color: #4da3ff; font-weight: bold; }
+.status-IN_PROGRESS { color: #ff9800; font-weight: bold; }
+.status-CLOSED { color: #4caf50; font-weight: bold; }
+
+.priority-LOW { color: #4caf50; font-weight: bold; }
+.priority-MEDIUM { color: #ffeb3b; font-weight: bold; }
+.priority-HIGH { color: #f44336; font-weight: bold; }
+</style>
+
+
+{% if request.user.role == 'USER' %}
+    <h1 style="color: #009ab9;">Twoje zgłoszenia</h1>
+{% else %}
+    <h1 style="color: #009ab9;">Zgłoszenia</h1>
+{% endif %}
+
+
+<h2>Statystyki zgłoszeń</h2>
+
+<p>
+    Wszystkie zgłoszenia: <b>{{ total_count }}</b> |
+    OPEN: <b>{{ open_count }}</b> |
+    IN PROGRESS: <b>{{ in_progress_count }}</b> |
+    CLOSED: <b>{{ closed_count }}</b>
+</p>
+
+<div style="max-width:400px; margin-bottom:30px;">
+    <canvas id="statusChart"></canvas>
+</div>
+
+
+<p>
+    <a href="/create/" class="button">➕ Utwórz nowe zgłoszenie</a>
+</p>
+
+
+<p>Filtry i sortowanie zgłoszeń:</p>
+
+<form method="get" style="margin-bottom:20px;">
+    Status:
+    <select name="status">
+        <option value="">---</option>
+        <option value="OPEN">OTWARTE</option>
+        <option value="IN_PROGRESS">W TRAKCIE</option>
+        <option value="CLOSED">ZAMKNIĘTE</option>
+    </select>
+
+    Priorytet:
+    <select name="priority">
+        <option value="">---</option>
+        <option value="LOW">NISKI</option>
+        <option value="MEDIUM">ŚREDNI</option>
+        <option value="HIGH">WYSOKI</option>
+    </select>
+
+    Sortuj:
+    <select name="sort">
+        <option value="">---</option>
+        <option value="date_asc">Data ↑</option>
+        <option value="date_desc">Data ↓</option>
+    </select>
+
+    <button class="button">Filtruj</button>
+</form>
+
+{% if tickets %}
+<table>
+    <tr>
+        <th>Tytuł</th>
+        <th>Status</th>
+        <th>Priorytet</th>
+        <th>Data</th>
+    </tr>
+    {% for t in tickets %}
+    <tr>
+        <td><a href="{% url 'ticket_detail' t.id %}">{{ t.title }}</a></td>
+        <td class="status-{{ t.status }}">{{ t.get_status_display }}</td>
+        <td class="priority-{{ t.priority }}">{{ t.get_priority_display }}</td>
+        <td>{{ t.created_at|date:"Y-m-d H:i" }}</td>
+    </tr>
+    {% endfor %}
+</table>
+{% else %}
+<p>Brak zgłoszeń.</p>
+{% endif %}
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const canvas = document.getElementById('statusChart');
+    if (!canvas) return;
+
+    new Chart(canvas, {
+        type: 'pie',
+        data: {
+            labels: ['Otwarte', 'W trakcie', 'Zamknięte'],
+            datasets: [{
+                data: [
+                    {{ open_count }},
+                    {{ in_progress_count }},
+                    {{ closed_count }}
+                ],
+                backgroundColor: [
+                    '#4da3ff',   // OPEN
+                    '#ff9800',   // IN_PROGRESS
+                    '#4caf50'    // CLOSED
+                ]
+            }]
+        },
+        options: {
+            plugins: {
+                legend: {
+                    position: 'bottom'
+                }
+            }
+        }
+    });
+});
+</script>
+
+{% endblock %}

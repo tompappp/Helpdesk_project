@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block title %}Nowe zgłoszenie{% endblock %}
+
+{% block content %}
+
+<h1>Nowe zgłoszenie</h1>
+
+<form method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit" class="button">Zapisz</button>
+</form>
+
+<p><a href="/">⬅ Powrót</a></p>
+
+{% endblock %}
